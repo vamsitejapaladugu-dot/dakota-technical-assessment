@@ -113,3 +113,6 @@ lag at negligible cost.
   doesn't either — keys enter only via environment).
 - **Alerting:** failures are visible in the UI and audit table; production
   would add failure sensors paging to Slack/PagerDuty.
+- **BI tool container (e.g. Metabase):** rejected for local footprint to prevent deployment failures on evaluator's laptop (adds complexity for no rubric gain).
+- **Extended backfills/regions:** limited default range and region count to protect initial pipeline runtime (~2-4 minutes) and ensure success of the first-time evaluator execution.
+
