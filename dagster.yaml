@@ -1,0 +1,10 @@
+# Local-instance settings. Run/event history lives under DAGSTER_HOME
+# (a named volume in docker-compose) so it survives container restarts.
+telemetry:
+  enabled: false
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
+  config:
+    max_concurrent_runs: 4
