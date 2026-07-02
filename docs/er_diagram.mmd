@@ -1,0 +1,51 @@
+erDiagram
+    dim_region ||--o{ fct_grid_hourly : "region_key"
+    dim_region ||--o{ fct_generation_hourly : "region_key"
+    dim_region ||--o{ agg_daily_region_summary : "region_key"
+    dim_fuel_type ||--o{ fct_generation_hourly : "fuel_key"
+
+    dim_region {
+        text region_key PK "md5(region_code)"
+        text region_code UK
+        text region_name
+        text timezone
+        text market_type
+        bigint population_served
+    }
+
+    dim_fuel_type {
+        text fuel_key PK "md5(fuel_code)"
+        text fuel_code UK
+        text fuel_name
+        boolean is_renewable
+        numeric co2_emission_kg_per_mwh
+    }
+
+    fct_grid_hourly {
+        text region_key FK
+        timestamptz period_utc "grain: (region_key, period_utc)"
+        numeric demand_mwh
+        numeric forecast_mwh "nullable: forecast coverage gaps"
+        numeric abs_error_mwh
+        numeric pct_error
+    }
+
+    fct_generation_hourly {
+        text region_key FK
+        text fuel_key FK
+        timestamptz period_utc "grain: (region_key, fuel_key, period_utc)"
+        numeric generation_mwh "negatives legitimate (storage charging)"
+        boolean is_renewable
+        numeric est_co2_kg
+    }
+
+    agg_daily_region_summary {
+        text region_key FK
+        date summary_date "grain: (region_key, summary_date)"
+        numeric total_demand_mwh
+        numeric peak_demand_mwh
+        numeric mean_abs_pct_error
+        numeric renewable_share
+        numeric est_co2_tonnes
+        boolean is_demand_anomaly
+    }
