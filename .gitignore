@@ -1,0 +1,24 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Generated outputs
+reports/output/*
+!reports/output/.gitkeep
+
+# dbt
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+
+# Dagster local instance
+dagster_home/
+.dagster/
+
+# OS noise
+.DS_Store
