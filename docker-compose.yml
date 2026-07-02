@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dakota}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dakota}
+      POSTGRES_DB: ${POSTGRES_DB:-energy}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dakota} -d ${POSTGRES_DB:-energy}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  enrichment-api:
+    build: ./api
+    ports:
+      - "8001:8001"
+    environment:
+      ENRICHMENT_SEED: 42
+
+  dagster:
+    build:
+      context: .
+      dockerfile: orchestration/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      EIA_API_KEY: ${EIA_API_KEY:-}
+      EIA_RESPONDENTS: ${EIA_RESPONDENTS:-ERCO,CISO,MISO}
+      BACKFILL_DAYS: ${BACKFILL_DAYS:-30}
+      INCREMENTAL_LOOKBACK_HOURS: ${INCREMENTAL_LOOKBACK_HOURS:-72}
+      # In-network addresses (service names, not localhost):
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dakota}:${POSTGRES_PASSWORD:-dakota}@postgres:5432/${POSTGRES_DB:-energy}
+      ENRICHMENT_API_URL: http://enrichment-api:8001
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-dakota}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dakota}
+      POSTGRES_DB: ${POSTGRES_DB:-energy}
+    volumes:
+      # Surfaces the PDF on the host and persists run history across restarts.
+      - ./reports/output:/opt/pipeline/reports/output
+      - dagster_home:/opt/dagster_home
+    depends_on:
+      postgres:
+        condition: service_healthy
+      enrichment-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/server_info', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+
+volumes:
+  pgdata:
+  dagster_home:
