@@ -1,0 +1,11 @@
+{
+  "response": {
+    "total": 4,
+    "data": [
+      {"respondent": "ERCO", "respondent-name": "Electric Reliability Council of Texas", "period": "2026-06-01T00", "type": "D", "value": "48213.5"},
+      {"respondent": "ERCO", "respondent-name": "Electric Reliability Council of Texas", "period": "2026-06-01T01", "type": "D", "value": "46102.0"},
+      {"respondent": "CISO", "respondent-name": "California Independent System Operator", "period": "2026-06-01T00", "type": "D", "value": "27455.2"},
+      {"respondent": "CISO", "respondent-name": "California Independent System Operator", "period": "2026-06-01T00", "type": "D", "value": "not-a-number"}
+    ]
+  }
+}

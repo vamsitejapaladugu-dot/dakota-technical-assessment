@@ -1,0 +1,11 @@
+{
+  "response": {
+    "total": 4,
+    "data": [
+      {"respondent": "ERCO", "respondent-name": "Electric Reliability Council of Texas", "fueltype": "NG", "type-name": "Natural Gas", "period": "2026-06-01T00", "value": "20110.0"},
+      {"respondent": "ERCO", "respondent-name": "Electric Reliability Council of Texas", "fueltype": "WND", "type-name": "Wind", "period": "2026-06-01T00", "value": "11893.4"},
+      {"respondent": "CISO", "respondent-name": "California Independent System Operator", "fueltype": "SUN", "type-name": "Solar", "period": "2026-06-01T00", "value": "0"},
+      {"respondent": "MISO", "respondent-name": "Midcontinent Independent System Operator", "fueltype": "COL", "type-name": "Coal", "period": "2026-06-01T00", "value": "22540.1"}
+    ]
+  }
+}
