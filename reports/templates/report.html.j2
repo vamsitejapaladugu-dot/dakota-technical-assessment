@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 1.6cm; }
+  body  { font-family: Helvetica, Arial, sans-serif; color: #222; font-size: 10pt; }
+  h1    { font-size: 19pt; margin: 0 0 2px 0; color: #1a3a4a; }
+  h2    { font-size: 12pt; color: #1a3a4a; border-bottom: 1px solid #d5dde2;
+          padding-bottom: 3px; margin-top: 18px; }
+  .subtitle { color: #667; margin-bottom: 14px; }
+  .demo-banner { background: #fdf3d7; border: 1px solid #e6c76a; padding: 6px 10px;
+          font-size: 9pt; margin-bottom: 12px; }
+  .kpi-row { display: flex; gap: 10px; margin: 12px 0; }
+  .kpi  { flex: 1; background: #f4f7f9; border-radius: 6px; padding: 10px; text-align: center; }
+  .kpi .value { font-size: 15pt; font-weight: bold; color: #1a3a4a; }
+  .kpi .label { font-size: 8pt; color: #667; text-transform: uppercase; letter-spacing: .04em; }
+  .chart-pair { display: flex; gap: 12px; }
+  .chart-pair img { width: 49%; }
+  img   { width: 100%; }
+  ul.insights { padding-left: 18px; }
+  ul.insights li { margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #e3e8ec; }
+  th    { background: #f4f7f9; }
+  td.num, th.num { text-align: right; }
+  .footer { margin-top: 20px; font-size: 8pt; color: #889; border-top: 1px solid #d5dde2;
+          padding-top: 6px; }
+</style>
+</head>
+<body>
+
+<h1>Grid Operations Executive Summary</h1>
+<div class="subtitle">Reporting period: {{ period }} &nbsp;·&nbsp; Regions: ERCOT, CAISO, MISO</div>
+
+{% if demo_mode %}
+<div class="demo-banner">
+  Generated in <strong>demo mode</strong> (no EIA API key configured): demand and
+  generation figures are deterministic synthetic data, not EIA actuals.
+</div>
+{% endif %}
+
+<div class="kpi-row">
+  <div class="kpi"><div class="value">{{ "{:,.0f}".format(kpis.total_demand_mwh / 1000) }}</div><div class="label">Total demand (GWh)</div></div>
+  <div class="kpi"><div class="value">{{ "{:.0%}".format(kpis.avg_renewable_share or 0) }}</div><div class="label">Avg renewable share</div></div>
+  <div class="kpi"><div class="value">{{ "{:,.0f}".format(kpis.total_co2_tonnes or 0) }}</div><div class="label">Est. CO₂ (tonnes)</div></div>
+  <div class="kpi"><div class="value">{{ "{:.1%}".format(kpis.overall_mape or 0) }}</div><div class="label">Forecast MAPE</div></div>
+  <div class="kpi"><div class="value">{{ kpis.anomaly_days }}</div><div class="label">Anomaly days</div></div>
+</div>
+
+<h2>Key findings</h2>
+<ul class="insights">
+  {% for insight in insights %}<li>{{ insight }}</li>{% endfor %}
+</ul>
+
+<h2>Demand trend &amp; anomalies</h2>
+<img src="{{ charts.demand_trend }}">
+
+<h2>Generation fuel mix</h2>
+<img src="{{ charts.fuel_mix }}">
+
+<h2>Regional comparison</h2>
+<div class="chart-pair">
+  <img src="{{ charts.renewable_share }}">
+  <img src="{{ charts.forecast_accuracy }}">
+</div>
+
+<table>
+  <tr><th>Region</th><th class="num">Demand (GWh)</th><th class="num">Peak (MWh)</th>
+      <th class="num">Renewable</th><th class="num">CO₂ (t)</th><th class="num">MAPE</th><th class="num">Anomaly days</th></tr>
+  {% for r in region_rows %}
+  <tr>
+    <td>{{ r.region_code }}</td>
+    <td class="num">{{ "{:,.0f}".format(r.total_demand_mwh / 1000) }}</td>
+    <td class="num">{{ "{:,.0f}".format(r.peak_demand_mwh) }}</td>
+    <td class="num">{{ "{:.0%}".format(r.avg_renewable_share or 0) }}</td>
+    <td class="num">{{ "{:,.0f}".format(r.est_co2_tonnes or 0) }}</td>
+    <td class="num">{{ "{:.1%}".format(r.mape or 0) }}</td>
+    <td class="num">{{ r.anomaly_days }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<div class="footer">
+  Generated {{ generated_at }} by the energy analytics pipeline.
+  Emission figures are estimates from illustrative per-fuel factors.
+  Data freshness:
+  {% for f in freshness %}{{ f.asset_name }} (last success {{ f.last_success.strftime("%m-%d %H:%M") }} UTC){{ ", " if not loop.last }}{% endfor %}.
+</div>
+
+</body>
+</html>
