@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: stg_eia__demand
+    description: "Cleaned hourly demand. Grain: one row per (region_code, period_utc)."
+    columns:
+      - name: region_code
+        tests: [not_null]
+      - name: period_utc
+        tests: [not_null]
+      - name: demand_mwh
+        description: "Hourly demand in MWh; nulls and negatives filtered at this layer."
+
+  - name: stg_eia__generation
+    description: "Cleaned hourly generation. Grain: one row per (region_code, fuel_code, period_utc)."
+    columns:
+      - name: fuel_code
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_fuel_type')
+              field: fuel_code
+              config:
+                severity: warn
+
+  - name: stg_enrichment__regions
+    description: "Region reference. Grain: one row per region_code."
+    columns:
+      - name: region_code
+        tests: [unique, not_null]
+
+  - name: stg_enrichment__fuel_types
+    description: "Fuel reference with emission factors. Grain: one row per fuel_code."
+    columns:
+      - name: fuel_code
+        tests: [unique, not_null]
+      - name: co2_emission_kg_per_mwh
+        tests: [not_null]
+
+  - name: stg_enrichment__forecasts
+    description: "Synthetic demand forecasts. Grain: one row per (region_code, period_utc, forecast_run)."
+    columns:
+      - name: forecast_mwh
+        tests: [not_null]

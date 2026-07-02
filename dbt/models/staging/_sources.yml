@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Bronze layer, loaded by the ingestion assets. Uniqueness on natural keys
+      is enforced physically by UNIQUE constraints (database/init/02_raw_tables.sql),
+      which is why staging models do not re-deduplicate.
+    schema: raw
+    loaded_at_field: _ingested_at
+    freshness:
+      warn_after: {count: 36, period: hour}
+    tables:
+      - name: eia_demand_hourly
+        description: Hourly electricity demand per balancing authority, from EIA API v2.
+      - name: eia_generation_hourly
+        description: Hourly net generation per balancing authority and fuel type, from EIA API v2.
+      - name: api_regions
+        description: Region reference data from the enrichment service.
+        freshness: null   # reference data: staleness is expected and harmless
+      - name: api_fuel_types
+        description: Fuel attributes (renewable flag, CO2 factors) from the enrichment service.
+        freshness: null
+      - name: api_demand_forecast
+        description: Synthetic hourly demand forecasts from the enrichment service.
