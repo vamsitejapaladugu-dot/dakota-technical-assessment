@@ -86,36 +86,35 @@ def build_report(output_dir: Path = OUTPUT_DIR) -> tuple[Path, str]:
             "No rows in marts.agg_daily_region_summary — run the pipeline (dbt build) first."
         )
 
-    with tempfile.TemporaryDirectory() as tmp:
-        chart_dir = Path(tmp)
-        chart_paths = {
-            "demand_trend": charts.demand_trend(daily, chart_dir),
-            "fuel_mix": charts.fuel_mix(fuel, chart_dir),
-            "renewable_share": charts.renewable_share(regions, chart_dir),
-            "forecast_accuracy": charts.forecast_accuracy(regions, chart_dir),
-        }
+    # Generate charts directly in the output directory so the HTML report links remain valid
+    chart_paths = {
+        "demand_trend": charts.demand_trend(daily, output_dir),
+        "fuel_mix": charts.fuel_mix(fuel, output_dir),
+        "renewable_share": charts.renewable_share(regions, output_dir),
+        "forecast_accuracy": charts.forecast_accuracy(regions, output_dir),
+    }
 
-        env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=True)
-        template = env.get_template("report.html.j2")
-        period = f"{kpis['period_start']:%b %d} – {kpis['period_end']:%b %d, %Y}"
-        html = template.render(
-            generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-            period=period,
-            demo_mode=config.demo_mode,
-            kpis=kpis,
-            region_rows=regions,
-            insights=_build_insights(kpis, regions, anomalies),
-            charts={name: path.as_uri() for name, path in chart_paths.items()},
-            freshness=freshness,
-        )
+    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=True)
+    template = env.get_template("report.html.j2")
+    period = f"{kpis['period_start']:%b %d} – {kpis['period_end']:%b %d, %Y}"
+    html = template.render(
+        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        period=period,
+        demo_mode=config.demo_mode,
+        kpis=kpis,
+        region_rows=regions,
+        insights=_build_insights(kpis, regions, anomalies),
+        charts={name: path.name for name, path in chart_paths.items()},
+        freshness=freshness,
+    )
 
-        html_path = output_dir / "executive_summary.html"
-        html_path.write_text(html)
+    html_path = output_dir / "executive_summary.html"
+    html_path.write_text(html)
 
-        from weasyprint import HTML  # deferred: heavy import, needs system libs
+    from weasyprint import HTML  # deferred: heavy import, needs system libs
 
-        pdf_path = output_dir / f"executive_summary_{datetime.now(timezone.utc):%Y%m%d}.pdf"
-        HTML(string=html, base_url=str(chart_dir)).write_pdf(pdf_path)
+    pdf_path = output_dir / f"executive_summary_{datetime.now(timezone.utc):%Y%m%d}.pdf"
+    HTML(string=html, base_url=str(output_dir)).write_pdf(pdf_path)
 
     logger.info("report generated pdf=%s period=%s", pdf_path, period)
     return pdf_path, period
