@@ -2,7 +2,7 @@
 name = "dakota-energy-pipeline"
 version = "0.1.0"
 description = "Energy analytics pipeline: EIA ingestion, enrichment, dbt transformations, Dagster orchestration, PDF reporting."
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "requests>=2.32",
     "tenacity>=8.3",
