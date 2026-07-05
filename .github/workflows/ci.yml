@@ -1,0 +1,22 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - name: Unit tests (no services required)
+        run: |
+          uv sync
+          uv run pytest
+      - name: dbt project parses
+        run: |
+          cd dbt && uv run dbt parse --no-partial-parse --profiles-dir .
+        env:
+          POSTGRES_HOST: localhost   # parse compiles jinja; no connection made
